@@ -1,15 +1,13 @@
-#include "EEPROM.h"
-
 //Adressen:
 // on1  0x0000
 // out1 0x0000+sizeof(unsigned short) (short=16bit)
 // on2  ...
 // out2 ...
 
-int address=0;
+int address=200;
 
 void eeprom_write(void){
-  address=0;
+  address=200;
   EEPROM.writeUShort(address, on1);
   address+=sizeof(unsigned short);
   EEPROM.writeUShort(address, out1);
@@ -17,7 +15,7 @@ void eeprom_write(void){
   EEPROM.writeUShort(address, on2);
   address+=sizeof(unsigned short);
   EEPROM.writeUShort(address, out2);
-  address=0;
+  address=200;
   EEPROM.commit();
   Serial.println("Neue Zeiten wurden abgespeichert");
   old_on1=on1;
@@ -27,7 +25,7 @@ void eeprom_write(void){
 }
 
 void eeprom_read(void){
-  address=0;
+  address=200;
   on1=EEPROM.readUShort(address);
   address+=sizeof(unsigned short);
   out1=EEPROM.readUShort(address);
@@ -35,11 +33,11 @@ void eeprom_read(void){
   on2=EEPROM.readUShort(address);
   address+=sizeof(unsigned short);
   out2=EEPROM.readUShort(address);
-  address=0;
+  address=200;
 }
 
 void eeprom_setup(){
-  if (!EEPROM.begin(1000)) {
+  if (!EEPROM.begin(512)) {
     Serial.println("Failed to initialise EEPROM");
     Serial.println("Restarting...");
     delay(1000);

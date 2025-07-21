@@ -7,79 +7,42 @@
  */
 static uint16_t counter=0;
 static uint16_t get_time_cnt=0;
-//void con_to_strongest_wifi(void);
 
 uint16_t onoff_time_convertion(uint16_t val, int16_t diff);
 
-void server_setup()
-{
-  con_to_strongest_wifi();
-  Serial.println(WiFi.localIP());
-    
-  server.begin();
-}
-
 void connection_check(){
   if(counter==0xffff){
+    //reconnect
+    
     get_time_cnt++;
-    Serial.println("Connection check");
-    if(WiFi.status() != WL_CONNECTED){
-      Serial.println("Disconnected :O");
-      Serial.println("try to reconnect");
-      WiFi.mode(WIFI_STA);
-      WiFi.disconnect();
-      delay(100);
-      uint8_t n=WiFi.scanNetworks();  //n: first use: number of found networks, second use: display, which ssid(n) is strongest;
-      for(i=0;i<n;i++){
-        if(WiFi.SSID(i)==ssid1){
-          n=1;
-          i=0xf0;
-        }
-        else if(WiFi.SSID(i)==ssid2){
-          n=2;
-          i=0xf0; //leave for loop
-        }
-      }
-      //connect to WiFi
-      if(n==1){
-        WiFi.begin(ssid1, password1);
-        for(i=0;i<20;i++){
-          if(WiFi.status() != WL_CONNECTED)
-            delay(500);
-            if(WiFi.status() == WL_CONNECT_FAILED)
-              WiFi.begin(ssid1, password1);
-          else{
-            i=20;
-            Serial.println("reconnected to: ");
-            Serial.println(ssid1);
-          }
-            
-        }
-      }
-      if(n==2){
-        WiFi.begin(ssid2, password2);
-        for(i=0;i<20;i++){
-          if(WiFi.status() != WL_CONNECTED){
-            delay(500);
-            if(WiFi.status() == WL_CONNECT_FAILED)
-              WiFi.begin(ssid2, password2);
-          }
-          else{
-            i=20;
-            Serial.println("reconnected to: ");
-            Serial.println(ssid2);
-          }
-        }
-      }
-    }
+    // Serial.println("Connection check");
+    // if(WiFi.status() != WL_CONNECTED){
+    //   Serial.println("Disconnected :O");
+    //   Serial.println("try to reconnect");
+    //   WiFi.mode(WIFI_STA);
+    //   WiFi.disconnect();
+    //   delay(100);
+    //   uint8_t n=WiFi.scanNetworks();  //n: first use: number of found networks, second use: display, which ssid(n) is strongest;
+    //   for(i=0;i<n;i++){
+    //     if(WiFi.SSID(i)==ssid1){
+    //       n=1;
+    //       i=0xf0;
+    //     }
+    //     else if(WiFi.SSID(i)==ssid2){
+    //       n=2;
+    //       i=0xf0; //leave for loop
+    //     }
+    //   }
+    // }
+
     if(get_time_cnt==0xffff){
       Serial.println("get time");
       //deactivate Wifi first, cause it is reactivated in sub routine
-      WiFi.disconnect(true);
-      WiFi.mode(WIFI_OFF);
-      delay(500);
+      // WiFi.disconnect(true);
+      // WiFi.mode(WIFI_OFF);
+      // delay(500);
       grab_NTP();
-      server_setup();
+      // server_setup();
     }
   }
   counter++;
@@ -109,14 +72,13 @@ void server_loop(){
 
             // the content of the HTTP response follows the header:
             client.print("<br>");
-            client.print("<br><br><br><h3>Guten Tag. Dies ist die Website zum Einstellen der Zeiten, in denen die suptertolle Nixie Uhr aktiv ist!</h3><br>");
-            client.print("Wenn mehr als zwei Zeitbereiche eingestellt werden sollen, bitte Ihren Sohn anrufen :)<br>");
-            client.print("<br>Bitte die gew&uumlnschten Einstellungen mithilfe der Kn&oumlpfe vornehmen.<br>");
+            client.print("<br><br><h3>Nixie Clock ESP32 v1.1 --- Einstellungen</h3><br>");
+            client.print("Bitte die Zeitbereiche, in denen die Uhr akiv sein soll, mit den Kn&oumlpfen einstellen.<br>");
             client.print("Die Uhrzeit ist in einem g&uumlltigen Format einzustellen<br>");
             client.print("Zum Beispiel: '1425' (14:25 Uhr), '0205' (02:05 Uhr)<br>");
-            client.print("Falls ein Zeitbereich nicht genutzt werden m&oumlchte, bitte zweimal die identische Zeit eintragen.<br>");
-            client.print("z.B.: 2An: 0000 2Aus: 0000<br>");
-            client.print("Au&szligerhalb der Zeiten ist die Uhr ausgeschaltet.<br><br>");
+            client.print("Um einen Zeitbereich nicht zu nutzen, bitte zweimal die identische Zeit eintragen.<br>");
+            client.print("Au&szligerhalb der eingestellten Zeiten ist die Uhr ausgeschaltet.<br><br>");
+            client.print("Aktuelle Zeit: ");
             client.println(localTime);
 
             client.print("<h4>Uhrzeit 1 an:&emsp;"); client.print(on1); client.print("&emsp;&emsp;&emsp;Uhrzeit 1 aus:&emsp;"); client.print(out1); client.print("</h4>");
@@ -165,16 +127,16 @@ void server_loop(){
             
             client.print("<br>");
             
+            client.print("<h4>Master-Schalter ");
             if(clock_active&0x1)
-              client.print("<h4>Aktuell ist die Uhr eingeschaltet.</h4><br>");
+              client.println("an.</h4>");
             else
-              client.print("<h4>Aktuell ist die Uhr ausgeschaltet.</h4><br>");
+              client.println("aus.</h4>");
+            client.println("<h4>(Overwrites Zeitbereich)</h4>");
             
             client.print("<a href=\"/2/status1\"><button type='button' name='STATUS' value='1' formtarget='_self'>Anschalten</button></a>&emsp;&emsp;");
             client.print("<a href=\"/2/status0\"><button type='button' name='STATUS' value='0' formtarget='_self'>Ausschalten</button></a>&emsp;&emsp;");
-
             client.print("<a href=\"/2/status3\"><button type='button' name='STATUS' value='0' formtarget='_self'>Aktuallisieren</button></a>");
-
             
             // The HTTP response ends with another blank line:
             client.println();
